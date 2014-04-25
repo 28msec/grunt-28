@@ -5,10 +5,15 @@ module.exports = function (grunt) {
         var fs = require('fs');
         var ffs = require('final-fs');
         var Q = require('q');
-        var API = require('./28.js');
-        var Client = require('./client.js');
+        var API = require('28/lib/28.js');
+        var Client = require('28/lib/client.js');
         var opts = this.options();
+        var url =  opts.api.protocol + '://' + opts.api.name + '.' + opts.api.domain + opts.api.prefix;
         var path = opts.path;
+
+        var done = this.async();
+
+        var projectName = this.data.project;
         
         function objectConcat(o1, o2) {
             for (var key in o2) {
@@ -23,39 +28,40 @@ module.exports = function (grunt) {
 
         var getLocalFiles = function(lists) {
             var local = [];
-            lists[1].forEach(function(path){
-                local[path] = {
+            lists[1].forEach(function(f){
+                local[f] = {
                     //TODO: remove String conversion
-                    lastModified: new Date(fs.statSync(path).mtime).toISOString()
+                    lastModified: new Date(fs.statSync(path + '/' + f).mtime).toISOString()
                 };
             });
-            lists[2].forEach(function(path){
-                local[path] = {
-                    lastModified: new Date(fs.statSync(path).mtime).toISOString()
+            lists[2].forEach(function(f){
+                local[f] = {
+                    lastModified: new Date(fs.statSync(path + '/' + f).mtime).toISOString()
                 };
             });
-            lists[3].forEach(function(path){
-                local[path] = {
-                    lastModified: new Date(fs.statSync(path).mtime).toISOString()
+            lists[3].forEach(function(f){
+                local[f] = {
+                    lastModified: new Date(fs.statSync(path + '/' + f).mtime).toISOString()
                 };
             });
             return local;
         };
-        
-        API.Auth(opts.API_URL)
+
+        API.Auth(url)
         .auth({ email: opts.email, password: opts.password, grant_type: 'client_credentials' })
         .then(function(session){
-            var projectToken = session.project_tokens['project_'+opts.projectName];
+            var projectToken = session.project_tokens['project_'+projectName];
             if(projectToken) {
-                ffs.mkdirRecursiveSync(path + 'modules', 511);
-                ffs.mkdirRecursiveSync(path + 'public', 511);
-                ffs.mkdirRecursiveSync(path + 'private', 511);
-                var project = API.Project(opts.PROJECT_URL, projectToken);
+                ffs.mkdirRecursiveSync(path + '/modules', 511);
+                ffs.mkdirRecursiveSync(path + '/public', 511);
+                ffs.mkdirRecursiveSync(path + '/private', 511);
+                var project_url =  opts.api.protocol + '://' + projectName + '.' + opts.api.domain + '/' + opts.api.version;
+                var project = API.Project(project_url, projectToken);
                 Q.all([
                     project.listFiles(),
-                    ffs.readdirRecursive(path + 'modules', true, 'modules'),
-                    ffs.readdirRecursive(path + 'public', true, 'public'),
-                    ffs.readdirRecursive(path + 'private', true, 'private')
+                    ffs.readdirRecursive(path + '/modules', true, 'modules'),
+                    ffs.readdirRecursive(path + '/public', true, 'public'),
+                    ffs.readdirRecursive(path + '/private', true, 'private')
                 ])
                 .then(function(lists){
                     var remote = getRemoteFiles(lists);
@@ -66,24 +72,28 @@ module.exports = function (grunt) {
                         true,
                         false
                     )
-                    .then(function(){console.log('Done.');})
+                    .then(function(){
+                        grunt.log.write('Done.');
+                        done();
+                    })
                     .catch(function(error){
-                        console.error(error);
+                        grunt.fail.fatal(error);
+                        done(false);
                     });
                 })
                 .catch(function(error){
-                    console.error('Server replied with:'.red);
-                    console.error(error.red);
+                    grunt.fail.fatal(error);
+                    done(false);
                 });
             } else {
-                console.error('Project ' + projectToken + ' wasn\'t found.'.red);
-                console.error('Run \'28 projects\' for more information.'.red);
+                grunt.fail.fatal('Project ' + projectName + ' wasn\'t found.'.red);
+                done(false);
             }
-        })
-        .catch(function(error){
-            console.error('Authentication failed. Server replied:'.red);
-            console.error(error.red);
+        },
+        function(error){
+            grunt.fail.fatal('Authentication failed. Server replied:'.red);
+            grunt.fail.fatal(error.red);
+            done(false);
         });
-        
     });
 };
