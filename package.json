@@ -1,6 +1,6 @@
 {
   "name": "grunt-28",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Grunt task for 28",
   "main": "./tasks/28.js",
   "scripts": {
@@ -32,8 +32,9 @@
   ],
   "homepage": "https://github.com/28msec/grunt-28",
   "dependencies": {
-    "28": "~0.3.3",
-    "colors": "~0.6.2"
+    "28": "~0.3.8",
+    "colors": "~0.6.2",
+    "lodash": "~2.4.1"
   },
   "devDependencies": {
     "grunt": "~0.4.4",
