@@ -153,7 +153,12 @@ module.exports = function (grunt) {
                     batch.forEach(function(unit){
                         promises.push(unit(credentials));
                     });
-                    return Q.allSettled(promises).then(function(){
+                    return Q.allSettled(promises).then(function(results){
+                        results.forEach(function (result) {
+                            if (result.state !== 'fulfilled') {
+                                throw new Error('Some queries failed.');
+                            }
+                        });
                         return credentials;
                     });
                 });
