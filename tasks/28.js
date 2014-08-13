@@ -171,10 +171,8 @@ module.exports = function (grunt) {
         .then(done)
         .catch(function(error) {
             var e;
-            if(_.isObject(error) && error.body) {
-                e = JSON.stringify(error.body, null, 2);
-            } else if(_.isObject(error)) {
-                e = JSON.stringify(error, null, 2);
+            if(_.isObject(error)) {
+                e = JSON.stringify(error.body ? error.body : error, null, 2);
             } else if(error instanceof Error || _.isString(error)) {
                 e = error;
             } else {
