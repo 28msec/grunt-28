@@ -130,7 +130,8 @@ module.exports = function (grunt) {
                 var batch = [];
                 queries.forEach(function(query){
                     var queryPath = query.substring(opt.src.length + 1);
-                    batch.push(function(projectToken) {
+                    batch.push(function(credentials) {
+                        var projectToken = credentials.project_tokens['project_' + projectName];
                         return Queries.executeQuery({
                             accept: 'application/28.io+json',
                             queryPath: queryPath,
@@ -138,23 +139,22 @@ module.exports = function (grunt) {
                             token: projectToken
                         }).then(function (data) {
                             grunt.log.writeln(('✓ '.green) + queryPath + ' returned with status code: ' + data.response.statusCode);
+                            return credentials;
                         }).catch(function (error) {
                             grunt.log.errorlns(error.body);
                             grunt.log.errorlns(('✗ '.red) + queryPath + ' returned with status code: ' + error.response.statusCode);
+                            throw error;
                         });
                     });
                 });
 
                 sequence.push(function(credentials){
-                    var projectToken = credentials.project_tokens['project_' + projectName];
                     var promises = [];
                     batch.forEach(function(unit){
-                        promises.push(unit(projectToken));
+                        promises.push(unit(credentials));
                     });
-                    return Q.all(promises).then(function(){
+                    return Q.allSettled(promises).then(function(){
                         return credentials;
-                    }).catch(function(error){
-                        throw error;
                     });
                 });
             });
