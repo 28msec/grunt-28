@@ -1,6 +1,6 @@
 {
   "name": "grunt-28",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Grunt task for 28",
   "main": "./tasks/28.js",
   "scripts": {
