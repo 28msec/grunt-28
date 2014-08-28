@@ -12,7 +12,7 @@ Grunt task for [28.io CLI Tool](http://github.com/28msec/28)
                 password: '<%= config.28.password %>'
             },
             setup: {
-                project: '<%= config.s3.bucket %>',
+                project: '<%= config.projectName %>',
                 delete: {
                     idempotent: true
                 },
@@ -28,14 +28,14 @@ Grunt task for [28.io CLI Tool](http://github.com/28msec/28)
                 ]
             },
             run: {
-                project: '<%= config.s3.bucket %>',
+                project: '<%= config.s3.projectName %>',
                 runQueries: [
                     'queries/public/test/*',
                     'queries/private/test/*'
                 ]
             },
             teardown: {
-                project: '<%= config.s3.bucket %>',
+                project: '<%= config.s3.projectName %>',
                 delete: {}
             }
         }
