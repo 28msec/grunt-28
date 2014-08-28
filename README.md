@@ -5,16 +5,39 @@ Grunt task for [28.io CLI Tool](http://github.com/28msec/28)
 
 ## Example
 ```javascript
-grunt.initConfig({
-    '28': {
-        options: {
-            src: '/path/to/queries',
-            email: 'w@28.io',
-            password: '****',
-            project: 'test'
-        },
-        dist: {}
-    }
-});
+        28: {
+            options: {
+                src: 'queries',
+                email: '<%= config.28.email %>',
+                password: '<%= config.28.password %>'
+            },
+            setup: {
+                project: '<%= config.s3.bucket %>',
+                delete: {
+                    idempotent: true
+                },
+                create: {},
+                upload: {
+                    projectPath: 'queries'
+                },
+                datasources: '<%= config.28.datasources %>',
+                runQueries: [
+                    'queries/private/InitAuditCollection.jq',
+                    'queries/private/init.jq',
+                    'queries/private/UpdateReportSchema.jq'
+                ]
+            },
+            run: {
+                project: '<%= config.s3.bucket %>',
+                runQueries: [
+                    'queries/public/test/*',
+                    'queries/private/test/*'
+                ]
+            },
+            teardown: {
+                project: '<%= config.s3.bucket %>',
+                delete: {}
+            }
+        }
 ```
 
