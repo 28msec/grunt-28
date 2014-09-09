@@ -6,7 +6,7 @@ module.exports = function (grunt) {
         require('colors');
         var Q = require('q');
         var _ = require('lodash');
-        var $28 = new (require('28').$28)('https://portal.28.io/api');
+        var $28 = new (require('28').$28)('http://portal.28.io/api');
         var done = this.async();
         var opt = this.options({
             overwrite: true,
