@@ -32,7 +32,7 @@
   ],
   "homepage": "https://github.com/28msec/grunt-28",
   "dependencies": {
-    "28": "~0.4.1",
+    "28": "https://github.com/28msec/28.git",
     "colors": "~0.6.2",
     "lodash": "~2.4.1"
   },
