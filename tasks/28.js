@@ -29,7 +29,7 @@ module.exports = function (grunt) {
         sequence.push(function() {
             grunt.log.writeln('Logging in as ' + opt.email);
             return $28.login(opt.email, opt.password).then(function(response){
-                grunt.log.writeln('Logged in.');
+                grunt.log.ok('Logged in.');
                 var credentials = response.body;
                 return credentials;
             });
@@ -43,7 +43,7 @@ module.exports = function (grunt) {
                 grunt.log.writeln('Deleting project ' + projectName);
                 var defered = Q.defer();
                 $28.deleteProject(projectName, token).then(function(){
-                    grunt.log.writeln('Project deleted.');
+                    grunt.log.ok('Project deleted.');
                     defered.resolve(credentials);
                 }).catch(function(error){
                     if(!isIdempotent) {
@@ -62,7 +62,7 @@ module.exports = function (grunt) {
                 var token = credentials.access_token;
                 grunt.log.writeln('Creating project ' + projectName);
                 return $28.createProject(projectName, token).then(function(response) {
-                    grunt.log.writeln('Project created.');
+                    grunt.log.ok('Project created.');
                     credentials.project_tokens['project_' + projectName] = response.body.projectToken;
                     return credentials;
                 });
@@ -77,7 +77,7 @@ module.exports = function (grunt) {
                     var difault = datasource.default ? datasource.default : false;
                     var projectToken = credentials.project_tokens['project_' + projectName];
                     return $28.createDatasource(projectName, datasource.category, datasource.name, projectToken, difault, JSON.stringify(datasource.credentials)).then(function(){
-                        grunt.log.writeln(datasource.name + ' created');
+                        grunt.log.ok(datasource.name + ' created');
                         return credentials;
                     });
                 });
@@ -98,7 +98,7 @@ module.exports = function (grunt) {
                 return $28.updateDefaultMongoDBCredentials(
                     projectName, token, dbType, connString, db, username, password, preDigested
                 ).then(function(){
-                    grunt.log.writeln('Default MongoDB datasource configured');
+                    grunt.log.ok('Default MongoDB datasource configured');
                 });
             });
         }
@@ -116,7 +116,26 @@ module.exports = function (grunt) {
                 var simulate = that.data.upload.simulate ? that.data.upload.simulate : false;
                 grunt.log.writeln('Uploading queries.');
                 return $28.upload(projectName, projectToken, projectPath, overwrite, deleteOrphaned, simulate, []).then(function(){
-                    grunt.log.writeln('Queries uploaded.');
+                    grunt.log.ok('Queries uploaded.');
+                    return credentials;
+                });
+            });
+        }
+
+        //Download Project
+        if(this.data.download) {
+            sequence.push(function(credentials) {
+                var projectToken = credentials.project_tokens['project_' + projectName];
+                if(!projectToken) {
+                    grunt.fail.fatal('project not found ' + projectName);
+                }
+                var projectPath = that.data.download.projectPath;
+                var overwrite = that.data.download.overwrite ? Options['OVERWRITE_' + that.data.download.overwrite.toUpperCase()] : Options.OVERWRITE_ALWAYS;
+                var deleteOrphaned = that.data.download.deleteOrphaned ? that.data.download.deleteOrphaned : true;
+                var simulate = that.data.download.simulate ? that.data.download.simulate : false;
+                grunt.log.writeln('Downloading queries.');
+                return $28.download(projectName, projectToken, projectPath, overwrite, deleteOrphaned, simulate, []).then(function(){
+                    grunt.log.ok('Queries downloaded.');
                     return credentials;
                 });
             });
@@ -138,7 +157,7 @@ module.exports = function (grunt) {
                             format: '',
                             token: projectToken
                         }).then(function (data) {
-                            grunt.log.writeln(('✓ '.green) + queryPath + ' returned with status code: ' + data.response.statusCode);
+                            grunt.log.ok(('✓ '.green) + queryPath + ' returned with status code: ' + data.response.statusCode);
                             return credentials;
                         }).catch(function (error) {
                             grunt.log.errorlns(error.body);
